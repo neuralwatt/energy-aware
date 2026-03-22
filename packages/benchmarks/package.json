@@ -1,0 +1,16 @@
+{
+	"name": "@neuralwatt/energy-aware-benchmarks",
+	"version": "0.1.0",
+	"description": "Benchmark harness and demos for energy-aware model routing",
+	"type": "module",
+	"main": "src/index.ts",
+	"scripts": {
+		"check": "tsc --noEmit -p tsconfig.json",
+		"test": "vitest run",
+		"demo:compare": "npx tsx src/demo-compare.ts"
+	},
+	"dependencies": {
+		"@neuralwatt/energy-aware-core": "*"
+	},
+	"license": "MIT"
+}

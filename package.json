@@ -12,6 +12,7 @@
 		"build": "npm run build -w packages/core && npm run build -w packages/openclaw-plugin"
 	},
 	"devDependencies": {
+		"@types/node": "^25.5.0",
 		"typescript": "^5.9.2",
 		"vitest": "^3.2.1"
 	}
