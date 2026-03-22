@@ -311,16 +311,33 @@ and register it in `src/plugins/contracts/registry.ts`.
 openclaw plugins enable energy-aware
 ```
 
-**4. Test:**
+**4. Run the demo:**
 
 ```bash
 export NEURALWATT_API_KEY=...
-pnpm openclaw agent --local --session-id demo --message "Write a debounce function"
+cd ~/dev/openclaw
+
+# Simple prompt -> routes to GPT-OSS 20B ($0.03/$0.16/M)
+pnpm openclaw agent --local --session-id demo-1 \
+  --message "Define a TypeScript interface for a cache with get, set, and delete methods"
+
+# Medium prompt -> routes to Devstral 24B ($0.12/$0.35/M)
+pnpm openclaw agent --local --session-id demo-2 \
+  --message "Implement an LRU cache class in TypeScript with O(1) get and set using a Map"
+
+# Complex prompt -> routes to Qwen3.5 397B ($0.69/$4.14/M)
+pnpm openclaw agent --local --session-id demo-3 \
+  --message "Implement a skip list data structure with probabilistic balancing, search, insert, and delete operations with proper TypeScript generics"
+
+# Thinking/debug prompt -> routes to Kimi K2.5 ($0.52/$2.59/M)
+pnpm openclaw agent --local --session-id demo-4 \
+  --message "Debug this: my topological sort returns wrong results when the graph has multiple disconnected components. Walk through the algorithm step by step and identify the bug"
 ```
 
-You should see:
+Each command shows the discriminator's routing decision:
 ```
-[energy-aware] Turn 1: mistralai/Devstral-Small-2-24B-Instruct-2512 consumed 2.5J (total: 2J, pressure: 0%)
+[energy-aware] Turn 1: simple -> GPT-OSS 20B (type definition) [░░░░░░░░░░░░░░░] 47J/25000J
+[hooks] model overridden to openai/gpt-oss-20b
 ```
 
 ## Integration with other tools
