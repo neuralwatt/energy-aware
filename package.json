@@ -15,5 +15,8 @@
 		"@types/node": "^25.5.0",
 		"typescript": "^5.9.2",
 		"vitest": "^3.2.1"
+	},
+	"dependencies": {
+		"openai": "^6.32.0"
 	}
 }
