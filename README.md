@@ -134,7 +134,7 @@ Task: Coding Task (10 turns)
   Energy saved: 50.6%
 ```
 
-### Live coding agent
+### Live coding agent (standalone)
 
 ```bash
 NEURALWATT_API_KEY=... npx tsx packages/benchmarks/src/demo-coding-agent.ts
@@ -144,6 +144,29 @@ Real multi-turn coding task against Neuralwatt API. Compares baseline (always
 uses expensive model) vs energy-aware (discriminator routes each turn).
 
 Options: `--budget 50000`, `--turns 3`, `--baseline`
+
+### Multi-step OpenClaw demo (per-step routing)
+
+```bash
+cd ~/dev/openclaw
+export NEURALWATT_API_KEY=...
+bash ~/dev/energy-aware/packages/benchmarks/src/demo-openclaw-multistep.sh
+```
+
+Runs a 4-step LRU cache coding task through OpenClaw, where each step gets
+its own discriminator classification and model routing:
+
+```
+Step 1 (define interfaces)  -> SIMPLE  -> GPT-OSS 20B  ($0.16/M)
+Step 2 (implement core)     -> MEDIUM  -> Devstral 24B ($0.35/M)
+Step 3 (validation + edges) -> MEDIUM  -> Devstral 24B ($0.35/M)
+Step 4 (consolidate)        -> MEDIUM  -> Devstral 24B ($0.35/M)
+```
+
+This mirrors the pi-mono demo's multi-phase architecture. Each subtask is
+a separate `openclaw agent` call, so the discriminator routes it independently.
+Simple type definitions go to the cheapest model; implementations go to a
+mid-tier model; complex algorithms would go to the most capable model.
 
 ## OpenClaw Integration
 
