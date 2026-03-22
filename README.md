@@ -170,12 +170,43 @@ mid-tier model; complex algorithms would go to the most capable model.
 
 ## OpenClaw Integration
 
-### Architecture
+### Two layers of cost optimization
 
-The plugin hooks into OpenClaw's lifecycle without any upstream code changes:
+Energy-aware routing in OpenClaw works at two levels:
+
+**Layer 1: Native config** (no plugin needed) — OpenClaw already supports
+per-task-type model selection. Configure cheap models for low-value work:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "neuralwatt/Qwen/Qwen3.5-397B-A17B-FP8",
+        "fallbacks": ["neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512"]
+      },
+      "subagents": {
+        "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512"
+      },
+      "heartbeat": {
+        "model": "neuralwatt/openai/gpt-oss-20b"
+      }
+    }
+  }
+}
+```
+
+This gives you cost savings on subagents and heartbeats with zero code.
+
+**Layer 2: Energy-aware plugin** — adds discriminator-based routing that
+classifies each prompt and overrides the primary model dynamically:
 
 ```
                     OpenClaw Agent Loop
+                          |
+  Native config:          |         Native config:
+  subagents -> Devstral   |         heartbeats -> GPT-OSS
+  fallbacks -> chain      |
                           |
     before_model_resolve  |  llm_output
     (classify + route)    |  (track energy)
@@ -192,6 +223,9 @@ The plugin hooks into OpenClaw's lifecycle without any upstream code changes:
             +---------------------------+
 ```
 
+The plugin's `before_model_resolve` hook overrides even the primary model —
+so a simple prompt configured for Qwen 397B gets routed down to GPT-OSS 20B.
+
 **Hooks used:**
 - `before_model_resolve` — runs the 4-tier discriminator (GPT-OSS 20B) to
   classify the user's prompt, then returns `modelOverride` to route to the
@@ -199,6 +233,14 @@ The plugin hooks into OpenClaw's lifecycle without any upstream code changes:
 - `llm_output` — receives token usage after each LLM call, estimates energy
   consumption using the `ENERGY_EFFICIENCY` table (tokens per joule), accumulates
   to `consumedEnergy`
+
+### Per-turn routing scope
+
+The `before_model_resolve` hook fires once per `openclaw agent` invocation.
+Within an agent session, internal tool-use LLM calls all use the same model.
+For per-subtask routing, structure work as multiple calls (see the
+[multi-step demo](#multi-step-openclaw-demo-per-step-routing) above) or use
+openclaw's subagent spawning where each subagent gets its own model resolution.
 
 **Discriminator tiers:**
 
