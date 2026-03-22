@@ -213,13 +213,15 @@ export default definePluginEntry({
       const usage = event.usage;
       if (!usage) return;
 
-      const totalTokens = (usage.input ?? 0) + (usage.output ?? 0);
+      // Use output tokens only for estimation — input tokens include
+      // cached system prompt which doesn't represent actual compute
+      const outputTokens = usage.output ?? 0;
 
-      // Check for actual energy data first
+      // Check for actual energy data first (not yet propagated by openclaw)
       const usageAny = usage as Record<string, unknown>;
       const actualEnergyJ = typeof usageAny.energy_joules === "number" ? usageAny.energy_joules : undefined;
 
-      const energyJ = actualEnergyJ ?? estimateEnergyJ(event.model, totalTokens);
+      const energyJ = actualEnergyJ ?? estimateEnergyJ(event.model, outputTokens);
       consumedEnergy += energyJ;
 
       console.log("");
