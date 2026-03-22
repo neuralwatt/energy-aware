@@ -1,0 +1,22 @@
+{
+	"name": "@neuralwatt/energy-aware-openclaw",
+	"version": "0.1.0",
+	"description": "OpenClaw plugin for energy-aware model routing via Neuralwatt",
+	"type": "module",
+	"main": "src/index.ts",
+	"scripts": {
+		"check": "tsc --noEmit -p tsconfig.json"
+	},
+	"dependencies": {
+		"@neuralwatt/energy-aware-core": "*"
+	},
+	"peerDependencies": {
+		"openclaw": ">=2025.0.0"
+	},
+	"peerDependenciesMeta": {
+		"openclaw": {
+			"optional": true
+		}
+	},
+	"license": "MIT"
+}

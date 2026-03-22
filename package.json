@@ -7,7 +7,7 @@
 		"packages/benchmarks"
 	],
 	"scripts": {
-		"check": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/openclaw-plugin/tsconfig.json",
+		"check": "tsc --noEmit -p packages/core/tsconfig.json && tsc -p packages/core/tsconfig.json && tsc --noEmit -p packages/openclaw-plugin/tsconfig.json",
 		"test": "vitest run --workspace vitest.workspace.ts",
 		"build": "npm run build -w packages/core && npm run build -w packages/openclaw-plugin"
 	},
