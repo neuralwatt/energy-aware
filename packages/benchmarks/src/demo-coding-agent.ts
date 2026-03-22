@@ -101,7 +101,9 @@ async function callLLM(
 	const text = response.choices[0]?.message?.content ?? "";
 	const usage = response.usage as unknown as Record<string, unknown>;
 
-	const energy = extractEnergyFromUsage(usage ?? {});
+	// Neuralwatt returns energy at the top level of the response (not inside usage)
+	const responseAny = response as unknown as Record<string, unknown>;
+	const energy = extractEnergyFromUsage(responseAny.energy as Record<string, unknown> ?? {});
 
 	return {
 		text,
