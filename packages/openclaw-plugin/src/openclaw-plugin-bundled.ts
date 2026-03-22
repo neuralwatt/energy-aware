@@ -39,12 +39,14 @@ const CLASSIFIER_MODEL = "openai/gpt-oss-20b";
 
 const CLASSIFIER_SYSTEM_PROMPT =
   "You are a routing classifier for a four-tier coding AI system.\n" +
-  "Choose the CHEAPEST tier that can handle the task correctly:\n" +
-  '  "thinking" -- step-by-step reasoning, debugging, algorithmic puzzles, chain-of-thought\n' +
-  '  "complex"  -- novel architecture or design decisions with no clear pattern\n' +
-  '  "medium"   -- standard implementation, clear spec, moderate complexity\n' +
-  '  "simple"   -- boilerplate, type definitions, trivial wrappers, obvious answers\n' +
-  'Also classify response length: "full" for detailed responses, "brief" for short answers.\n' +
+  "Choose the CHEAPEST tier that can handle the task correctly.\n" +
+  "IMPORTANT: if the task would take a senior engineer more than 30 minutes, it is complex or thinking.\n\n" +
+  "Tiers (cheapest first):\n" +
+  '  "simple"   -- interface/type definitions, boilerplate, trivial wrappers, config files, re-exports\n' +
+  '  "medium"   -- standard implementations with clear specs (e.g. LRU cache, debounce, event emitter, CRUD, middleware, validation)\n' +
+  '  "complex"  -- non-trivial algorithms, probabilistic structures, concurrent/async coordination, parsers, state machines, anything needing careful invariant management (e.g. skip list, B-tree, CRDT, regex engine)\n' +
+  '  "thinking" -- step-by-step debugging, root-cause analysis, performance reasoning, explaining subtle bugs\n\n' +
+  'Also classify response length: "full" for complete implementations, "brief" for short answers.\n' +
   'Reply with ONLY valid JSON: {"tier":"medium","length":"full","reason":"<=10 words"}';
 
 const TIER_ORDER: Tier[] = ["simple", "medium", "complex", "thinking"];
@@ -187,12 +189,18 @@ export default definePluginEntry({
       const tierColors = ["\x1b[32m", "\x1b[36m", "\x1b[35m", "\x1b[33m"]; // green, cyan, magenta, yellow
       const tierColor = tierColors[tierIdx] ?? "\x1b[36m";
 
+      console.log("");
       console.log(
-        `${tierColor}[energy-aware]\x1b[0m Turn ${turnNumber}: ` +
-        `${tierColor}${result.tier}\x1b[0m -> ${result.tierConfig.label} ` +
-        `(\x1b[2m${result.reason}\x1b[0m) ` +
-        `${energyBar(consumedEnergy, budget)}`,
+        `${tierColor}  [energy-aware] ` +
+        `${result.tier.toUpperCase()} -> ${result.tierConfig.label} ` +
+        `($${result.tierConfig.costOutput}/M output)\x1b[0m`,
       );
+      console.log(
+        `  \x1b[2mReason: ${result.reason} | ` +
+        `Classifier cost: ${result.classifierEnergyJ.toFixed(1)}J | ` +
+        `${energyBar(consumedEnergy, budget)}\x1b[0m`,
+      );
+      console.log("");
 
       return {
         modelOverride: result.tierConfig.model,
@@ -214,11 +222,16 @@ export default definePluginEntry({
       const energyJ = actualEnergyJ ?? estimateEnergyJ(event.model, totalTokens);
       consumedEnergy += energyJ;
 
+      console.log("");
       console.log(
-        `\x1b[2m[energy-aware]\x1b[0m ${event.model}: ` +
-        `${energyJ.toFixed(1)}J (${(usage.input ?? 0)}in/${(usage.output ?? 0)}out) ` +
-        `${energyBar(consumedEnergy, budget)}`,
+        `  \x1b[36m[energy-aware] Response complete:\x1b[0m ${event.model}`,
       );
+      console.log(
+        `  \x1b[2mTokens: ${(usage.input ?? 0)} in / ${(usage.output ?? 0)} out | ` +
+        `Energy: ${energyJ.toFixed(1)}J | ` +
+        `${energyBar(consumedEnergy, budget)}\x1b[0m`,
+      );
+      console.log("");
     });
   },
 });
