@@ -155,25 +155,45 @@ The plugin hooks into OpenClaw's lifecycle without any upstream code changes:
                     OpenClaw Agent Loop
                           |
     before_model_resolve  |  llm_output
-    (pick cheaper model)  |  (track energy)
+    (classify + route)    |  (track energy)
               \           |           /
                \          |          /
             +---------------------------+
             |   Energy-Aware Plugin     |
             |                           |
-            |  consumedEnergy: 1,247J   |
-            |  pressure: 72%           |
-            |  budget: 25,000J          |
-            |  -> route to gpt-oss-20b  |
+            |  Discriminator (GPT-OSS)  |
+            |  classifies prompt ->     |
+            |  simple/medium/complex/   |
+            |  thinking -> routes to    |
+            |  cheapest adequate model  |
             +---------------------------+
 ```
 
 **Hooks used:**
-- `before_model_resolve` — consults budget pressure, returns `modelOverride` to
-  route to a cheaper Neuralwatt model when pressure > 70%
+- `before_model_resolve` — runs the 4-tier discriminator (GPT-OSS 20B) to
+  classify the user's prompt, then returns `modelOverride` to route to the
+  cheapest model that can handle that tier
 - `llm_output` — receives token usage after each LLM call, estimates energy
   consumption using the `ENERGY_EFFICIENCY` table (tokens per joule), accumulates
   to `consumedEnergy`
+
+**Discriminator tiers:**
+
+| Tier | Model | Cost | When |
+|------|-------|------|------|
+| simple | GPT-OSS 20B | $0.03/$0.16/M | Type definitions, boilerplate, trivial answers |
+| medium | Devstral 24B | $0.12/$0.35/M | Standard implementation, clear spec |
+| complex | Qwen3.5 397B | $0.69/$4.14/M | Novel architecture, design decisions |
+| thinking | Kimi K2.5 | $0.52/$2.59/M | Step-by-step reasoning, debugging, CoT |
+
+**Verified routing examples:**
+
+```
+"Define a TypeScript interface"           -> simple  -> GPT-OSS 20B
+"Add input validation"                    -> medium  -> Devstral 24B
+"Implement a skip list with balancing"    -> complex -> Qwen3.5 397B
+"Debug this topological sort step by step"-> complex -> Qwen3.5 397B
+```
 
 ### State persistence
 
