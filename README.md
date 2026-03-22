@@ -181,19 +181,23 @@ The plugin hooks into OpenClaw's lifecycle without any upstream code changes:
 
 | Tier | Model | Cost | When |
 |------|-------|------|------|
-| simple | GPT-OSS 20B | $0.03/$0.16/M | Type definitions, boilerplate, trivial answers |
-| medium | Devstral 24B | $0.12/$0.35/M | Standard implementation, clear spec |
-| complex | Qwen3.5 397B | $0.69/$4.14/M | Novel architecture, design decisions |
-| thinking | Kimi K2.5 | $0.52/$2.59/M | Step-by-step reasoning, debugging, CoT |
+| simple | GPT-OSS 20B | $0.03/$0.16/M | Interface/type definitions, boilerplate, re-exports |
+| medium | Devstral 24B | $0.12/$0.35/M | Standard implementations — LRU cache, debounce, CRUD, validation |
+| complex | Qwen3.5 397B | $0.69/$4.14/M | Algorithms, data structures, parsers, state machines, tricky invariants |
+| thinking | Kimi K2.5 | $0.52/$2.59/M | Step-by-step debugging, root-cause analysis, performance reasoning |
 
 **Verified routing examples:**
 
 ```
-"Define a TypeScript interface"           -> simple  -> GPT-OSS 20B
-"Add input validation"                    -> medium  -> Devstral 24B
-"Implement a skip list with balancing"    -> complex -> Qwen3.5 397B
-"Debug this topological sort step by step"-> complex -> Qwen3.5 397B
+"Define a TypeScript interface for a cache"              -> SIMPLE  -> GPT-OSS 20B    ($0.16/M)
+"Implement an LRU cache using a Map for O(1)"           -> MEDIUM  -> Devstral 24B   ($0.35/M)
+"Implement a skip list with probabilistic balancing"     -> COMPLEX -> Qwen3.5 397B  ($4.14/M)
+"Debug this topological sort step by step"               -> COMPLEX -> Qwen3.5 397B  ($4.14/M)
 ```
+
+The classifier itself runs on GPT-OSS 20B (~42J per classification, negligible
+overhead). The savings come from routing simple/medium prompts to models that
+cost 10-25x less than the most capable option.
 
 ### State persistence
 
