@@ -8,6 +8,18 @@ export type {
 	UsageWithEnergy,
 	RuntimePolicy,
 	EnergyUsage,
+	// LLM Client types
+	StopReason,
+	Message,
+	Tool,
+	ToolParameter,
+	ToolCall,
+	ToolResult,
+	LLMContext,
+	CompleteOptions,
+	Usage,
+	AssistantMessage,
+	StreamEvent,
 } from "./types.js";
 
 // Policies
@@ -17,6 +29,9 @@ export { BaselinePolicy } from "./policy/baseline-policy.js";
 // Session
 export { EnergySession } from "./session.js";
 export type { EnergySessionConfig } from "./session.js";
+
+// LLM Client
+export { completeSimple, streamSimple } from "./client.js";
 
 // Telemetry
 export type { TelemetryRecord, TelemetryInput } from "./telemetry/types.js";
@@ -32,7 +47,7 @@ export {
 export { extractEnergyFromUsage } from "./energy-extraction.js";
 
 // Models
-export { NEURALWATT_MODELS, ENERGY_EFFICIENCY, getNeuralwattModel } from "./models.js";
+export { NEURALWATT_MODELS, ENERGY_EFFICIENCY, getNeuralwattModel, fetchNeuralwattModels } from "./models.js";
 
 // Discriminator
 export type {
