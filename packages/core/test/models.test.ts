@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NEURALWATT_MODELS, ENERGY_EFFICIENCY, getNeuralwattModel } from "../src/models.js";
+import { NEURALWATT_MODELS, ENERGY_EFFICIENCY, getNeuralwattModel, fetchNeuralwattModels } from "../src/models.js";
 
 describe("NEURALWATT_MODELS catalog", () => {
 	it("should have at least 5 models", () => {
@@ -66,5 +66,41 @@ describe("getNeuralwattModel", () => {
 
 	it("should return undefined for empty string", () => {
 		expect(getNeuralwattModel("")).toBeUndefined();
+	});
+});
+
+describe("extended ModelInfo fields", () => {
+	it("every model should have provider and baseUrl", () => {
+		for (const model of NEURALWATT_MODELS) {
+			expect(model.provider).toBe("neuralwatt");
+			expect(model.baseUrl).toBe("https://api.neuralwatt.com/v1");
+		}
+	});
+
+	it("every model should have a display name", () => {
+		for (const model of NEURALWATT_MODELS) {
+			expect(model.name).toBeTruthy();
+		}
+	});
+
+	it("every model should have input cost", () => {
+		for (const model of NEURALWATT_MODELS) {
+			expect(model.cost.input).toBeDefined();
+			expect(model.cost.input!).toBeGreaterThanOrEqual(0);
+		}
+	});
+
+	it("models with tool_calling capability should be marked", () => {
+		const devstral = getNeuralwattModel("mistralai/Devstral-Small-2-24B-Instruct-2512");
+		expect(devstral?.capabilities).toContain("tool_calling");
+	});
+});
+
+describe("fetchNeuralwattModels", () => {
+	it("should fall back to static catalog with invalid API key", async () => {
+		const models = await fetchNeuralwattModels("invalid-key-xxx");
+		expect(models.length).toBeGreaterThan(0);
+		expect(models[0].id).toBeTruthy();
+		expect(models[0].provider).toBe("neuralwatt");
 	});
 });

@@ -48,4 +48,21 @@ describe("barrel exports", () => {
 		expect(typeof core.DEFAULT_DISCRIMINATOR_SYSTEM_PROMPT).toBe("string");
 		expect(core.DEFAULT_DISCRIMINATOR_SYSTEM_PROMPT.length).toBeGreaterThan(0);
 	});
+
+	it("should export LLM client functions", () => {
+		expect(typeof core.completeSimple).toBe("function");
+		expect(typeof core.streamSimple).toBe("function");
+	});
+
+	it("should export fetchNeuralwattModels", () => {
+		expect(typeof core.fetchNeuralwattModels).toBe("function");
+	});
+
+	it("should have extended ModelInfo fields in catalog", () => {
+		const model = core.NEURALWATT_MODELS[0];
+		expect(model.provider).toBe("neuralwatt");
+		expect(model.baseUrl).toBe("https://api.neuralwatt.com/v1");
+		expect(model.name).toBeTruthy();
+		expect(model.cost.input).toBeDefined();
+	});
 });
